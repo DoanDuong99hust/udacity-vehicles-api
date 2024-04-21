@@ -1,16 +1,13 @@
 package com.udacity.vehicles.service;
 
 import com.udacity.vehicles.client.maps.MapsClient;
-import com.udacity.vehicles.client.prices.Price;
 import com.udacity.vehicles.client.prices.PriceClient;
-import com.udacity.vehicles.domain.Location;
 import com.udacity.vehicles.domain.car.Car;
 import com.udacity.vehicles.domain.car.CarRepository;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 
 /**
  * Implements the car service create, read, update or delete
@@ -45,10 +42,11 @@ public class CarService {
      * @return the requested car's information, including location and price
      */
     public Car findById(Long id) {
-        Car car = repository.getOne(id);
-        if (Objects.isNull(car)) {
+        Optional<Car> carOptional = repository.findCarById(id);
+        if (carOptional.isEmpty()) {
             throw new CarNotFoundException();
         }
+        Car car = carOptional.get();
         car.setPrice(priceClient.getPrice(car.getId()));
         car.setLocation(mapsClient.getAddress(car.getLocation()));
         return car;
@@ -77,10 +75,10 @@ public class CarService {
      * @param id the ID number of the car to delete
      */
     public void delete(Long id) {
-        Car car = repository.getOne(id);
-        if (car == null) {
+        Optional<Car> carOptional = repository.findCarById(id);
+        if (carOptional.isEmpty()) {
             throw new CarNotFoundException();
         }
-        repository.delete(car);
+        repository.delete(carOptional.get());
     }
 }
